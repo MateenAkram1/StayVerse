@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/api/client";
 import { useToast } from "@/components/ToastHost";
+import { LocationPickerMap } from "@/components/LocationPickerMap";
 import { POPULAR_CITIES, PROPERTY_TYPES } from "@/constants/travel";
 
 type F = {
@@ -36,6 +37,21 @@ const empty: F = {
   amenities: "wifi, kitchen, parking",
 };
 
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  Lahore: { lat: 31.52, lng: 74.35 },
+  Islamabad: { lat: 33.68, lng: 73.04 },
+  Karachi: { lat: 24.86, lng: 67.01 },
+  Dubai: { lat: 25.2, lng: 55.27 },
+  Istanbul: { lat: 41.01, lng: 28.98 },
+  Baku: { lat: 40.4, lng: 49.87 },
+  Doha: { lat: 25.29, lng: 51.53 },
+  "Kuala Lumpur": { lat: 3.14, lng: 101.69 },
+  London: { lat: 51.5, lng: -0.12 },
+  Paris: { lat: 48.85, lng: 2.35 },
+  "New York": { lat: 40.71, lng: -74.0 },
+  Tokyo: { lat: 35.67, lng: 139.65 },
+};
+
 export function ListingEditorPage() {
   const { id } = useParams();
   // Route "/dashboard/listings/new" has no :id param in this app,
@@ -45,6 +61,10 @@ export function ListingEditorPage() {
   const toast = useToast();
   const [form, setForm] = useState<F>(empty);
   const [files, setFiles] = useState<FileList | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [cityManuallyEdited, setCityManuallyEdited] = useState(false);
+  const lat = Number(form.lat);
+  const lng = Number(form.lng);
 
   useEffect(() => {
     const load = async () => {
@@ -72,6 +92,71 @@ export function ListingEditorPage() {
 
   const ch = (k: keyof F) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const reverseGeocode = async (nextLat: number, nextLng: number) => {
+    setGeoLoading(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(
+          String(nextLat)
+        )}&lon=${encodeURIComponent(String(nextLng))}&zoom=18&addressdetails=1`
+      );
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        display_name?: string;
+        address?: {
+          city?: string;
+          town?: string;
+          village?: string;
+          municipality?: string;
+          county?: string;
+          state_district?: string;
+          hamlet?: string;
+          suburb?: string;
+          road?: string;
+          house_number?: string;
+          country?: string;
+        };
+      };
+      const cityCandidates = [
+        data.address?.city,
+        data.address?.town,
+        data.address?.municipality,
+        data.address?.village,
+        data.address?.county,
+        data.address?.state_district,
+        data.address?.hamlet,
+      ]
+        .filter(Boolean)
+        .map((x) => String(x).trim());
+
+      const rawCityGuess = cityCandidates[0] || "";
+      const normalizedKnownCity =
+        POPULAR_CITIES.find((known) => {
+          const k = known.toLowerCase();
+          const g = rawCityGuess.toLowerCase();
+          return g === k || g.includes(k) || k.includes(g);
+        }) || "";
+      const cityGuess = normalizedKnownCity || rawCityGuess;
+      const roadPart = [data.address?.house_number, data.address?.road].filter(Boolean).join(" ").trim();
+      const addressGuess = roadPart || data.address?.suburb || data.display_name || "";
+      setForm((f) => ({
+        ...f,
+        lat: String(nextLat),
+        lng: String(nextLng),
+        city: !cityManuallyEdited ? cityGuess || f.city : f.city,
+        address: addressGuess || f.address,
+        country: data.address?.country || f.country,
+      }));
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
+  const pickLocation = ({ lat: nextLat, lng: nextLng }: { lat: number; lng: number }) => {
+    setForm((f) => ({ ...f, lat: String(nextLat), lng: String(nextLng) }));
+    void reverseGeocode(nextLat, nextLng);
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,19 +237,31 @@ export function ListingEditorPage() {
         </label>
         <label className="block text-xs uppercase text-ink-200/80">
           City
-          <select
+          <input
+            list="city-options"
             className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm"
             value={form.city}
-            onChange={ch("city")}
+            onChange={(e) => {
+              const cityValue = e.target.value;
+              setCityManuallyEdited(true);
+              setForm((f) => ({ ...f, city: cityValue }));
+              if (CITY_COORDS[cityValue]) {
+                setForm((f) => ({
+                  ...f,
+                  city: cityValue,
+                  lat: String(CITY_COORDS[cityValue].lat),
+                  lng: String(CITY_COORDS[cityValue].lng),
+                }));
+              }
+            }}
+            placeholder="Start typing a city"
             required
-          >
-            <option value="">Select city</option>
+          />
+          <datalist id="city-options">
             {POPULAR_CITIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+              <option key={c} value={c} />
             ))}
-          </select>
+          </datalist>
         </label>
       </div>
       <label className="block text-xs uppercase text-ink-200/80">
@@ -178,15 +275,46 @@ export function ListingEditorPage() {
           ))}
         </select>
       </label>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-xs uppercase text-ink-200/80">
-          Latitude
-          <input className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm" value={form.lat} onChange={ch("lat")} required />
-        </label>
-        <label className="block text-xs uppercase text-ink-200/80">
-          Longitude
-          <input className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm" value={form.lng} onChange={ch("lng")} required />
-        </label>
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-wider text-ink-200/80">Property location</p>
+        <p className="text-xs text-ink-200/80">
+          Click on the map to drop a pin, or drag the marker to fine-tune location. Address and city auto-fill from pin and remain editable.
+        </p>
+        <LocationPickerMap
+          lat={Number.isFinite(lat) ? lat : 31.52}
+          lng={Number.isFinite(lng) ? lng : 74.35}
+          onChange={pickLocation}
+        />
+        <div className="flex flex-wrap gap-2 text-xs text-ink-200/90">
+          <span className="rounded-md bg-ink-900/70 px-2 py-1">Lat: {Number.isFinite(lat) ? lat.toFixed(6) : "-"}</span>
+          <span className="rounded-md bg-ink-900/70 px-2 py-1">Lng: {Number.isFinite(lng) ? lng.toFixed(6) : "-"}</span>
+          {geoLoading && <span className="rounded-md bg-ink-900/70 px-2 py-1">Detecting address...</span>}
+          <button
+            type="button"
+            className="btn-ghost !py-1 text-xs"
+            onClick={() => {
+              setCityManuallyEdited(false);
+              if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                void reverseGeocode(lat, lng);
+              }
+            }}
+          >
+            Auto-fill from pin
+          </button>
+          <button
+            type="button"
+            className="btn-ghost !py-1 text-xs"
+            onClick={() => {
+              if (!navigator.geolocation) return;
+              navigator.geolocation.getCurrentPosition((pos) => {
+                setCityManuallyEdited(false);
+                pickLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              });
+            }}
+          >
+            Use current location
+          </button>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-xs uppercase text-ink-200/80">
