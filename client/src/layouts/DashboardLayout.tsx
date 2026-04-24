@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAppSelector } from "@/app/hooks";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { clsx } from "clsx";
+import { clearAuth } from "@/features/auth/authSlice";
 
 type Item = { to: string; label: string; host?: boolean; admin?: boolean };
 
@@ -21,8 +22,14 @@ const items: Item[] = [
 
 export function DashboardLayout() {
   const user = useAppSelector((s) => s.auth.user);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(true);
   const loc = useLocation();
+  const logout = () => {
+    dispatch(clearAuth());
+    navigate("/");
+  };
 
   const visible = items.filter((i) => {
     if (i.admin) return user?.role === "admin";
@@ -83,9 +90,14 @@ export function DashboardLayout() {
               {items.find((x) => x.to === loc.pathname)?.label ?? "Dashboard"}
             </span>
           </div>
-          <Link to="/explore" className="text-sm text-ink-200 hover:text-paper">
-            Browse places
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to="/explore" className="text-sm text-ink-200 hover:text-paper">
+              Browse places
+            </Link>
+            <button type="button" onClick={logout} className="btn-ghost !py-1.5 text-xs">
+              Logout
+            </button>
+          </div>
         </header>
         <motion.div
           className="flex-1 p-4 sm:p-6 lg:p-8"

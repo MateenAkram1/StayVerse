@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/api/client";
 import { useToast } from "@/components/ToastHost";
+import { POPULAR_CITIES, PROPERTY_TYPES } from "@/constants/travel";
 
 type F = {
   title: string;
@@ -37,7 +38,9 @@ const empty: F = {
 
 export function ListingEditorPage() {
   const { id } = useParams();
-  const isNew = id === "new";
+  // Route "/dashboard/listings/new" has no :id param in this app,
+  // so treat missing id as create mode.
+  const isNew = !id || id === "new";
   const nav = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState<F>(empty);
@@ -135,7 +138,7 @@ export function ListingEditorPage() {
           value={form.type}
           onChange={ch("type")}
         >
-          {["entire", "room", "shared", "villa", "cabin", "condo"].map((t) => (
+          {PROPERTY_TYPES.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
@@ -149,12 +152,31 @@ export function ListingEditorPage() {
         </label>
         <label className="block text-xs uppercase text-ink-200/80">
           City
-          <input className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm" value={form.city} onChange={ch("city")} required />
+          <select
+            className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm"
+            value={form.city}
+            onChange={ch("city")}
+            required
+          >
+            <option value="">Select city</option>
+            {POPULAR_CITIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
       <label className="block text-xs uppercase text-ink-200/80">
         Country
-        <input className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm" value={form.country} onChange={ch("country")} />
+        <select className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2 text-sm" value={form.country} onChange={ch("country")}>
+          <option value="">Select country</option>
+          {["Pakistan", "UAE", "Turkey", "Qatar", "Malaysia", "UK", "France", "USA", "Japan"].map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-xs uppercase text-ink-200/80">
