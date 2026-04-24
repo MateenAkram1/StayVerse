@@ -1,0 +1,26 @@
+# Copy this file to ".env" in the project root and fill in values.
+# The server (Express) loads environment variables from the root .env when you run from repo root, or from server folder — see API_KEYS.md.
+
+# --- Server ---
+PORT=5000
+NODE_ENV=development
+CLIENT_ORIGIN=http://localhost:5173
+MONGODB_URI=mongodb://127.0.0.1:27017/stayverse
+
+# JWT: generate a long random string (e.g. openssl rand -hex 32)
+JWT_SECRET=change_this_to_a_long_random_secret
+JWT_EXPIRES=7d
+
+# Optional: allow host to confirm bookings without prior demo payment (not recommended for coursework demos)
+# ALLOW_UNPAID_CONFIRM=true
+
+# Google AI Studio — Gemini (free tier for students / makers). Used for ranking recommendations.
+# Get a key: https://aistudio.google.com/apikey
+GEMINI_API_KEY=
+# Optional model override; default in code is gemini-1.5-flash
+# GEMINI_MODEL=gemini-1.5-flash
+
+# --- Client (Vite) — prefix with VITE_ ---
+# Leave empty in dev: Vite proxy forwards /api and /uploads to the backend.
+# In production, set to your real API, e.g. https://api.yourdomain.com/api
+VITE_API_URL=
