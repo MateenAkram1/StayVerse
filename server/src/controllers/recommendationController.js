@@ -9,7 +9,12 @@ export const forYou = catchAsync(async (req, res) => {
       .sort({ pricePerNight: 1, createdAt: -1 })
       .limit(8)
       .select("_id title city type pricePerNight maxGuests");
-    return res.json({ success: true, propertyIds: pool.map((p) => p._id), source: "guest_pool" });
+    return res.json({
+      success: true,
+      propertyIds: pool.map((p) => p._id),
+      source: "guest_pool",
+      about: "Unauthenticated: returns a recent pool. With login + GEMINI_API_KEY, listings are ranked for you via GET /api/recommendations.",
+    });
   }
   const user = await User.findById(req.user._id);
   const userSummary = `Name ${user.name}; city ${user.locationCity || "n/a"}; max price $${user.preferences?.maxPrice || 500}; types ${(user.preferences?.propertyTypes || []).join(", ")}.`;
@@ -25,5 +30,10 @@ export const forYou = catchAsync(async (req, res) => {
     propertySummaries,
     apiKey: process.env.GEMINI_API_KEY,
   });
-  res.json({ success: true, propertyIds: ids, source });
+  res.json({
+    success: true,
+    propertyIds: ids,
+    source,
+    about: "Set GEMINI_API_KEY and GEMINI_MODEL (e.g. gemini-2.0-flash) for smart ranking. Without a key, a price-based fallback is used. Fetch each id with GET /api/properties/:id.",
+  });
 });

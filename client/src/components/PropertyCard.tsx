@@ -16,16 +16,17 @@ export function PropertyCard({ p, index = 0 }: Props) {
     >
       <Link
         to={`/stay/${p._id}`}
-        className="tilt-item ring-gradient group block overflow-hidden rounded-2xl bg-ink-800/55 transition hover:-translate-y-1 hover:border-pine-400/25"
+        className="tilt-item ring-gradient group block overflow-hidden rounded-2xl bg-ink-800/55 transition duration-300 hover:-translate-y-1.5 hover:shadow-glow"
       >
         <div className="relative aspect-[5/3] overflow-hidden">
           <img
             src={img}
             alt=""
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+            className="h-full w-full object-cover transition duration-700 will-change-transform group-hover:scale-[1.08]"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-night/95 via-night/25 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-ember/10 to-transparent opacity-0 transition group-hover:opacity-100" />
           <div className="absolute bottom-0 left-0 right-0 px-3 py-2 text-xs uppercase tracking-wider text-ink-100/85">
             {p.city} · {p.type}
           </div>

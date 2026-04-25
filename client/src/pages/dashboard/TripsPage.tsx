@@ -53,7 +53,13 @@ export function TripsPage() {
   return (
     <div>
       <h1 className="font-display text-2xl text-paper">Trips</h1>
-      <p className="text-sm text-ink-200">Stays you booked. Download a PDF once the host has confirmed (or for your own records in demo).</p>
+      <p className="text-sm text-ink-200">
+        Pay with the <strong className="text-ink-100">full checkout</strong> (simulated card) or <strong className="text-ink-100">quick pay</strong> if your{" "}
+        <Link to="/dashboard/wallet" className="text-ember hover:underline">
+          wallet
+        </Link>{" "}
+        has enough balance.
+      </p>
       <div className="mt-6 space-y-3">
         {list.map((b) => {
           const p = b.property as Property;
@@ -70,9 +76,14 @@ export function TripsPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {b.paymentStatus !== "mock_paid" && b.status !== "cancelled" && (
-                  <button type="button" className="btn-primary !py-1.5 text-xs" onClick={() => pay(b._id)}>
-                    Demo pay
-                  </button>
+                  <>
+                    <Link to={`/dashboard/pay/${b._id}`} className="btn-primary !py-1.5 text-center text-xs">
+                      Checkout
+                    </Link>
+                    <button type="button" className="btn-ghost !py-1.5 text-xs" onClick={() => pay(b._id)}>
+                      Quick pay (wallet)
+                    </button>
+                  </>
                 )}
                 {b.status !== "cancelled" && (
                   <button type="button" className="btn-ghost !py-1.5 text-xs" onClick={() => cancel(b._id)}>

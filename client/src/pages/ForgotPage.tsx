@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { useToast } from "@/components/ToastHost";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { AuthShell } from "@/components/layout/AuthShell";
 
 export function ForgotPage() {
   const [email, setEmail] = useState("");
@@ -54,82 +55,97 @@ export function ForgotPage() {
     }
   };
 
+  const title = mode === "request" ? "Reset access" : "Set new password";
+  const subtitle =
+    mode === "request"
+      ? "We will issue a token. In dev, the token is returned in the response."
+      : "Paste your token and choose a new password.";
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      {mode === "request" && (
-        <motion.form
-          onSubmit={request}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm rounded-2xl border border-white/10 bg-ink-800/70 p-8"
-        >
-          <h1 className="font-display text-2xl text-paper">Reset access</h1>
-          <p className="mt-1 text-sm text-ink-200">We will issue a token. In dev, the token is returned in the response.</p>
-          <label className="mt-6 block text-xs text-ink-200/80">
-            Email
-            <input
-              className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2.5"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
-          <button className="btn-primary mt-5 w-full" type="submit" disabled={busy}>
-            Request token
-          </button>
-        </motion.form>
-      )}
-      {mode === "reset" && (
-        <motion.form
-          onSubmit={reset}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm rounded-2xl border border-white/10 bg-ink-800/70 p-8"
-        >
-          <h1 className="font-display text-2xl text-paper">Set new password</h1>
-          {devToken && (
-            <p className="mt-2 break-all text-xs text-ember/80">Dev token: {devToken}</p>
-          )}
-          <label className="mt-4 block text-xs text-ink-200/80">
-            Token
-            <input
-              className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2.5"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Paste from email (or dev output)"
-            />
-          </label>
-          <label className="mt-3 block text-xs text-ink-200/80">
-            New password
-            <input
-              className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2.5"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              required
-            />
-          </label>
-          <button className="btn-primary mt-5 w-full" type="submit" disabled={busy}>
-            Update password
-          </button>
-          <button
-            type="button"
-            className="mt-2 w-full text-sm text-ink-200"
-            onClick={() => {
-              setMode("request");
-            }}
+    <AuthShell
+      title={title}
+      subtitle={subtitle}
+      image="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80"
+    >
+      <AnimatePresence mode="wait">
+        {mode === "request" && (
+          <motion.form
+            key="req"
+            onSubmit={request}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            className="ring-gradient glass mt-8 p-8 shadow-lift"
           >
-            Back
-          </button>
-        </motion.form>
-      )}
-      <p className="absolute bottom-8 text-sm text-ink-200/80">
-        <Link to="/login" className="text-ember hover:underline">
+            <label className="block text-xs font-medium uppercase tracking-wider text-ink-200/85">
+              Email
+              <input
+                className="input-ctrl"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </label>
+            <button className="btn-primary mt-5 w-full" type="submit" disabled={busy}>
+              Request token
+            </button>
+          </motion.form>
+        )}
+        {mode === "reset" && (
+          <motion.form
+            key="reset"
+            onSubmit={reset}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            className="ring-gradient glass mt-8 p-8 shadow-lift"
+          >
+            {devToken && <p className="mb-3 break-all text-xs text-ember/80">Dev token: {devToken}</p>}
+            <label className="block text-xs font-medium uppercase tracking-wider text-ink-200/85">
+              Token
+              <input
+                className="input-ctrl"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Paste from email (or dev output)"
+              />
+            </label>
+            <label className="mt-3 block text-xs font-medium uppercase tracking-wider text-ink-200/85">
+              New password
+              <input
+                className="input-ctrl"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
+                autoComplete="new-password"
+              />
+            </label>
+            <button className="btn-primary mt-5 w-full" type="submit" disabled={busy}>
+              Update password
+            </button>
+            <button
+              type="button"
+              className="mt-3 w-full rounded-lg border border-white/10 py-2 text-sm text-ink-200 transition hover:border-white/20 hover:text-paper"
+              onClick={() => {
+                setMode("request");
+              }}
+            >
+              Back
+            </button>
+          </motion.form>
+        )}
+      </AnimatePresence>
+      <p className="mt-6 text-center text-sm text-ink-200">
+        <Link to="/login" className="text-ember transition hover:text-paper">
           ← Sign in
         </Link>
       </p>
-    </div>
+    </AuthShell>
   );
 }

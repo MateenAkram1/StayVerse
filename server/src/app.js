@@ -20,6 +20,9 @@ import * as analytics from "./controllers/analyticsController.js";
 import * as recommend from "./controllers/recommendationController.js";
 import * as contact from "./controllers/contactController.js";
 import * as payment from "./controllers/paymentController.js";
+import * as payflow from "./controllers/paymentFlowController.js";
+import * as wallet from "./controllers/walletController.js";
+import * as aiChat from "./controllers/chatController.js";
 import * as cash from "./controllers/cashflowController.js";
 import * as pdf from "./controllers/pdfController.js";
 
@@ -40,6 +43,8 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 400, standardHeaders: true, legacyHeaders: false });
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const chatLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
+const payFlowLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 80, standardHeaders: true, legacyHeaders: false });
 app.use("/api", apiLimiter);
 
 // Auth
@@ -80,8 +85,19 @@ app.get("/api/bookings/:id", protect, bookings.getBooking);
 app.patch("/api/bookings/:id/confirm", protect, bookings.confirmBooking);
 app.patch("/api/bookings/:id/cancel", protect, bookings.cancelBooking);
 
-// Payments (demo)
+// Wallet & simulated card checkout
+app.get("/api/wallet", protect, wallet.getWallet);
+app.post("/api/payments/simulate/start", protect, payFlowLimiter, payflow.startSimulated);
+app.get("/api/payments/simulate/:id", protect, payflow.getSession);
+app.post("/api/payments/simulate/:id/card", protect, payFlowLimiter, payflow.submitCard);
+app.post("/api/payments/simulate/:id/3ds", protect, payFlowLimiter, payflow.submit3DS);
+app.post("/api/payments/simulate/:id/capture", protect, payFlowLimiter, payflow.captureSession);
+
+// Payments: quick pay from wallet (legacy one-tap) + demo alias
 app.post("/api/payments/demo", protect, payment.demoPay);
+
+// AI chat (Gemini)
+app.post("/api/ai/chat", protect, chatLimiter, aiChat.chat);
 
 // PDF
 app.get("/api/bookings/:id/receipt", protect, pdf.downloadReceipt);

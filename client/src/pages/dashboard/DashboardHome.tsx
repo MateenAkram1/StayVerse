@@ -3,8 +3,9 @@ import { useAppSelector } from "@/app/hooks";
 import { motion } from "framer-motion";
 
 const cards = [
+  { to: "/dashboard/wallet", t: "Wallet", d: "Add simulated credits, then pay for stays (see checkout on each trip)." },
   { to: "/dashboard/trips", t: "Trips", d: "Bookings you’ve made as a guest." },
-  { to: "/dashboard/cashflow", t: "Cashflow", d: "Credits and debits from demo payments." },
+  { to: "/dashboard/cashflow", t: "Cashflow", d: "Credits and debits from wallet and bookings." },
   { to: "/dashboard/profile", t: "Profile", d: "Bio, photo, and travel preferences." },
   { to: "/dashboard/listings", t: "Listings", d: "Host tools — only when your account is in host mode.", host: true },
   { to: "/dashboard/analytics", t: "Performance", d: "Host metrics for your properties.", host: true },
@@ -31,7 +32,7 @@ export function DashboardHome() {
           >
             <Link
               to={c.to}
-              className="panel block h-full p-5 transition hover:border-pine-400/20"
+              className="panel block h-full p-5 transition duration-200 hover:-translate-y-0.5 hover:border-ember/20 hover:shadow-lift"
             >
               <h2 className="font-display text-lg text-paper">{c.t}</h2>
               <p className="mt-2 text-sm text-ink-200">{c.d}</p>

@@ -12,6 +12,18 @@ export async function recordGuestDebit({ userId, amount, label, bookingId }) {
   });
 }
 
+export async function recordWalletTopUp({ userId, amount, label }) {
+  if (!userId || amount == null) return;
+  return Transaction.create({
+    user: userId,
+    amount: Math.abs(amount),
+    kind: "credit",
+    label,
+    category: "wallet",
+    booking: null,
+  });
+}
+
 export async function recordHostCredit({ userId, amount, label, bookingId }) {
   if (!userId || amount == null) return;
   return Transaction.create({

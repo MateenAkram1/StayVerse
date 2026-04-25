@@ -22,6 +22,8 @@ const userSchema = new mongoose.Schema(
     },
     passwordResetToken: { type: String, select: false },
     passwordResetExpire: { type: Date, select: false },
+    /** Prepaid balance (USD) for simulated checkout — not real money */
+    walletBalance: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );

@@ -17,7 +17,7 @@ This app is designed so you can run it **without paying** and **without adding a
 | `JWT_SECRET`     | Secret for signing session tokens (required) |
 | `CLIENT_ORIGIN`  | Vite app URL (default `http://localhost:5173`) |
 
-`GEMINI_API_KEY` is **optional**; if missing, the server falls back to a simple heuristic for “recommended” properties.
+`GEMINI_API_KEY` is **optional**; if missing, the server falls back to a simple heuristic for “recommended” properties and the in-app chat returns an error until the key is set.
 
 **Client (Vite):**
 
@@ -58,16 +58,19 @@ Put the result in `JWT_SECRET`. Never commit `.env`.
 
 ---
 
-## 4. Google Gemini (AI recommendations) — free tier, no card for AI Studio
+## 4. Google Gemini (recommendations + chat) — free tier, no card for AI Studio
 
-Used for: ordering property IDs for `/api/recommendations`.
+| Feature | API | Default model (in code) | Override |
+| ------- | --- | ------------------------ | -------- |
+| **AI recommendations** (home page, property order) | `GET /api/recommendations` | `gemini-2.0-flash` | `GEMINI_MODEL` |
+| **StayVerse chat widget** (floating “AI” when logged in) | `POST /api/ai/chat` body `{ "messages": [{ "role": "user", "content": "…" }] }` | same as recommendations unless you set a chat-only model | `GEMINI_CHAT_MODEL` (falls back to `GEMINI_MODEL`, then `gemini-2.0-flash`) |
 
 1. Open **[Google AI Studio](https://aistudio.google.com/apikey)**.
 2. Create an API key (log in with a Google account).
-3. Set `GEMINI_API_KEY` in `.env` to that key.  
-4. The SDK in this project uses `@google/generative-ai` with a model like `gemini-1.5-flash` (overridable via `GEMINI_MODEL`).
+3. Set `GEMINI_API_KEY` in `.env` to that key.
+4. Optional: set `GEMINI_MODEL` and/or `GEMINI_CHAT_MODEL` to a model id from the [Gemini API models list](https://ai.google.dev/gemini-api/docs/models) (e.g. `gemini-2.5-flash` if your project lists it; exact ids change over time).
 
-**When the key is missing:** the app still works; the server returns a **fallback** ordering based on listing data.
+**When the key is missing:** listing recommendations use a **fallback** ordering. Chat shows a server error until you add `GEMINI_API_KEY`.
 
 > Always check the latest [Google AI / Gemini](https://ai.google.dev/gemini-api/docs) pricing and quota pages for the current free limits.
 
@@ -85,11 +88,15 @@ If you must use Google Maps later, that is a **separate** Google Cloud project a
 
 ---
 
-## 6. Payments — demo only (no Payfast keys)
+## 6. Payments — simulated wallet + checkout (no real gateway)
 
-Real **Payfast** (or other gateways) usually require a merchant and production credentials. This project uses a **demo payment** route (`POST /api/payments/demo`) that simulates a successful charge, updates `paymentStatus` to `mock_paid`, and posts **debit / credit** rows for the cashflow view.
+There are **no** Payfast/Stripe production keys. Money is simulated.
 
-**No API keys** are required for payments in this implementation.
+1. **Wallet (credits):** Each user has `walletBalance` (USD, demo). **Dashboard → Wallet** runs a **multi-step** simulated card flow: review → **last4 `4242`** → 3DS “Approve” → capture. The session API is under `/api/payments/simulate/…` (see `server` routes). Successful top-up credits the wallet and records a transaction.
+2. **Full booking checkout:** From a stay or **Trips → Checkout**, the same flow runs for the booking amount. On capture, the booking is paid from **wallet** (debit) and `paymentStatus` becomes `mock_paid`.
+3. **Quick pay:** `POST /api/payments/demo` with `bookingId` only pays if **wallet balance ≥ total**; otherwise use Wallet or full checkout.
+
+No payment provider API keys are required.
 
 ---
 

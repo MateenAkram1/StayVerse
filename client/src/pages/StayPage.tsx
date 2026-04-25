@@ -18,6 +18,7 @@ export function StayPage() {
   const [guests, setGuests] = useState(1);
   const [booking, setBooking] = useState<{ _id: string; totalPrice: number; paymentStatus: string; status: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [walletBal, setWalletBal] = useState(0);
 
   useEffect(() => {
     const run = async () => {
@@ -30,6 +31,15 @@ export function StayPage() {
     };
     void run();
   }, [id]);
+
+  useEffect(() => {
+    if (!user) return;
+    const run = async () => {
+      const { data } = await api.get<{ balance: number }>("/wallet");
+      setWalletBal(data.balance);
+    };
+    void run();
+  }, [user, booking?._id]);
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const share = async () => {
@@ -70,15 +80,17 @@ export function StayPage() {
     }
   };
 
-  const pay = async () => {
+  const payQuick = async () => {
     if (!booking) return;
     try {
       const { data } = await api.post("/payments/demo", { bookingId: booking._id });
       setBooking(data.booking);
       toast(data.message, "ok");
+      const w = await api.get<{ balance: number }>("/wallet");
+      setWalletBal(w.data.balance);
     } catch (e) {
       const m = (e as { response?: { data?: { message?: string } } }).response?.data?.message;
-      toast(m || "Payment failed (demo)", "err");
+      toast(m || "Could not pay from wallet", "err");
     }
   };
 
@@ -204,9 +216,28 @@ export function StayPage() {
                 </p>
                 <p className="mt-1">Payment: {booking.paymentStatus} · {booking.status}</p>
                 {booking.paymentStatus !== "mock_paid" && (
-                  <button type="button" className="btn-primary mt-3 w-full" onClick={pay}>
-                    Pay with demo checkout (no real charge)
-                  </button>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs text-ink-200/80">Wallet: ${walletBal.toFixed(2)} (simulated)</p>
+                    <Link
+                      to={`/dashboard/pay/${booking._id}`}
+                      className="btn-primary block w-full text-center"
+                    >
+                      Open checkout (full card flow)
+                    </Link>
+                    {walletBal >= booking.totalPrice && (
+                      <button type="button" className="btn-ghost w-full !py-2 text-xs" onClick={payQuick}>
+                        Pay from wallet (quick, no card steps)
+                      </button>
+                    )}
+                    {walletBal < booking.totalPrice && (
+                      <Link
+                        to="/dashboard/wallet"
+                        className="block text-center text-xs text-ember hover:underline"
+                      >
+                        Add wallet credits to pay or use full checkout
+                      </Link>
+                    )}
+                  </div>
                 )}
                 {booking.paymentStatus === "mock_paid" && (
                   <p className="mt-2 text-ember/90">Host can now confirm the booking from their dashboard.</p>

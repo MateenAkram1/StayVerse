@@ -29,16 +29,16 @@ import { ProfilePage } from "@/pages/dashboard/ProfilePage";
 import { NotificationsPage } from "@/pages/dashboard/NotificationsPage";
 import { MyBlogPage } from "@/pages/dashboard/MyBlogPage";
 import { AdminPage } from "@/pages/dashboard/AdminPage";
+import { WalletPage } from "@/pages/dashboard/WalletPage";
+import { PayBookingPage } from "@/pages/dashboard/PayBookingPage";
 import { ToastHost } from "@/components/ToastHost";
+import { ChatWidget } from "@/components/ChatWidget";
+import { LoadPulse } from "@/components/ui/LoadPulse";
 
 function Protected({ children, roles }: { children: React.ReactNode; roles?: User["role"][] }) {
   const { token, user, hydrated } = useAppSelector((s) => s.auth);
   if (!hydrated) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center text-ink-200">
-        <span className="animate-pulse">Loading session…</span>
-      </div>
-    );
+    return <LoadPulse label="Syncing your session" />;
   }
   if (!token || !user) {
     return <Navigate to="/login" replace />;
@@ -84,6 +84,7 @@ export default function App() {
   return (
     <>
       <ToastHost />
+      <ChatWidget />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
@@ -106,6 +107,8 @@ export default function App() {
           }
         >
           <Route index element={<DashboardHome />} />
+          <Route path="wallet" element={<WalletPage />} />
+          <Route path="pay/:bookingId" element={<PayBookingPage />} />
           <Route path="trips" element={<TripsPage />} />
           <Route
             path="bookings"

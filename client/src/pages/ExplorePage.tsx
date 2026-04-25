@@ -5,6 +5,7 @@ import { api } from "@/api/client";
 import { PropertyCard } from "@/components/PropertyCard";
 import type { Property } from "@/types";
 import { POPULAR_CITIES, PROPERTY_TYPES } from "@/constants/travel";
+import { TextShimmer } from "@/components/ui/LoadPulse";
 
 export function ExplorePage() {
   const [params, setParams] = useSearchParams();
@@ -59,10 +60,16 @@ export function ExplorePage() {
         <h1 className="font-display text-3xl text-paper">Explore</h1>
         <p className="mt-1 text-ink-200">Search inspired by Airbnb/Booking patterns: destination, dates, guests, and type.</p>
         <div className="mt-5 flex flex-wrap gap-2">
-          {["Flexible dates", "Entire homes", "Great views", "Top host picks"].map((chip) => (
-            <span key={chip} className="rounded-full border border-white/15 bg-night/60 px-3 py-1 text-xs text-ink-100/90">
+          {["Flexible dates", "Entire homes", "Great views", "Top host picks"].map((chip, j) => (
+            <motion.span
+              key={chip}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.04 * j }}
+              className="rounded-full border border-white/12 bg-gradient-to-r from-night/80 to-ink-800/50 px-3 py-1 text-xs text-ink-100/90"
+            >
               {chip}
-            </span>
+            </motion.span>
           ))}
         </div>
       </motion.div>
@@ -161,14 +168,23 @@ export function ExplorePage() {
         </label>
       </div>
       <p className="mt-4 text-sm text-ink-200/90">
-        {total} listing{total === 1 ? "" : "s"} found
-        {loading ? " · searching…" : ""}
+        {loading ? "Searching listings…" : `${total} listing${total === 1 ? "" : "s"} found`}
       </p>
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {!loading &&
-          list.map((p, i) => (
-            <PropertyCard key={p._id} p={p} index={i} />
-          ))}
+        {loading
+          ? [0, 1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="overflow-hidden rounded-2xl border border-white/10 bg-ink-800/40"
+              >
+                <TextShimmer className="aspect-[5/3] w-full" />
+                <div className="space-y-2 p-4">
+                  <TextShimmer className="h-4 w-[80%]" />
+                  <TextShimmer className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))
+          : list.map((p, i) => <PropertyCard key={p._id} p={p} index={i} />)}
       </div>
     </div>
   );

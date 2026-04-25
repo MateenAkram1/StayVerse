@@ -14,11 +14,13 @@ JWT_EXPIRES=7d
 # Optional: allow host to confirm bookings without prior demo payment (not recommended for coursework demos)
 # ALLOW_UNPAID_CONFIRM=true
 
-# Google AI Studio — Gemini (free tier for students / makers). Used for ranking recommendations.
+# Google AI Studio — Gemini. Used for GET /api/recommendations and POST /api/ai/chat (chat widget).
 # Get a key: https://aistudio.google.com/apikey
 GEMINI_API_KEY=
-# Optional model override; default in code is gemini-1.5-flash
-# GEMINI_MODEL=gemini-1.5-flash
+# Optional: model for ranking listings (default in code: gemini-2.0-flash)
+# GEMINI_MODEL=gemini-2.0-flash
+# Optional: chat-only model (else GEMINI_MODEL, else same default). Use e.g. gemini-2.5-flash if available in your project.
+# GEMINI_CHAT_MODEL=gemini-2.5-flash
 
 # --- Client (Vite) — prefix with VITE_ ---
 # Leave empty in dev: Vite proxy forwards /api and /uploads to the backend.

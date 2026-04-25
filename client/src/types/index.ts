@@ -9,6 +9,8 @@ export type User = {
   social?: { twitter?: string; instagram?: string; linkedin?: string };
   locationCity?: string;
   preferences?: { maxPrice: number; propertyTypes: string[] };
+  /** Simulated wallet balance in USD (demo) */
+  walletBalance?: number;
   createdAt?: string;
 };
 

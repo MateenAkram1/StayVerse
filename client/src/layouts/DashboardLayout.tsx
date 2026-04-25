@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { motion, LayoutGroup } from "framer-motion";
+import { AnimatedOutlet } from "@/components/layout/AnimatedOutlet";
+import { ContextBanner } from "@/components/layout/ContextBanner";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { clsx } from "clsx";
 import { clearAuth } from "@/features/auth/authSlice";
@@ -9,6 +11,7 @@ type Item = { to: string; label: string; host?: boolean; admin?: boolean };
 
 const items: Item[] = [
   { to: "/dashboard", label: "Overview" },
+  { to: "/dashboard/wallet", label: "Wallet" },
   { to: "/dashboard/trips", label: "Trips" },
   { to: "/dashboard/cashflow", label: "Cashflow" },
   { to: "/dashboard/notifications", label: "Inbox" },
@@ -38,19 +41,20 @@ export function DashboardLayout() {
   });
 
   return (
-    <div className="flex min-h-screen">
+    <div className="relative z-10 flex min-h-screen">
       <aside
         className={clsx(
-          "fixed left-0 top-0 z-40 flex h-full flex-col border-r border-white/5 bg-night/95 transition-[width] duration-300 ease-out md:relative",
+          "fixed left-0 top-0 z-40 flex h-full flex-col border-r border-white/[0.06] bg-night/80 shadow-[4px_0_40px_-12px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-[width] duration-300 ease-out md:relative",
           open ? "w-60" : "w-0 -translate-x-full overflow-hidden border-0 md:w-16 md:translate-x-0"
         )}
       >
-        <div className="flex h-16 shrink-0 items-center gap-2 border-b border-white/5 px-4">
-          <Link to="/" className="font-display text-paper">
+        <div className="flex h-16 shrink-0 items-center gap-2 border-b border-white/[0.06] bg-gradient-to-r from-pine-600/10 to-transparent px-4">
+          <Link to="/" className="font-display text-sm font-bold tracking-wide text-paper">
             {open ? "StayVerse" : "S"}
           </Link>
         </div>
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
+        <LayoutGroup>
+        <nav className="flex-1 space-y-1 overflow-y-auto p-2">
           {visible.map((i) => (
             <NavLink
               key={i.to}
@@ -58,15 +62,27 @@ export function DashboardLayout() {
               end={i.to === "/dashboard"}
               className={({ isActive }) =>
                 clsx(
-                  "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium transition",
-                  isActive ? "bg-pine-600/30 text-paper" : "text-ink-200 hover:bg-white/5 hover:text-paper"
+                  "group relative flex min-h-[2.75rem] items-center overflow-hidden rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+                  isActive ? "text-paper" : "text-ink-200 hover:bg-white/[0.04] hover:text-paper"
                 )
               }
             >
-              {open ? i.label : i.label[0]}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.span
+                      layoutId="dash-active"
+                      className="absolute inset-0 rounded-lg border border-ember/20 bg-gradient-to-r from-ember/10 to-transparent"
+                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">{open ? i.label : i.label[0]}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
+        </LayoutGroup>
         <div className="border-t border-white/5 p-3 text-xs text-ink-200/70">
           {open && (
             <p className="line-clamp-2">
@@ -76,7 +92,7 @@ export function DashboardLayout() {
         </div>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/5 bg-ink-800/70 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/[0.06] bg-ink-800/55 px-4 shadow-sm backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -99,15 +115,10 @@ export function DashboardLayout() {
             </button>
           </div>
         </header>
-        <motion.div
-          className="flex-1 p-4 sm:p-6 lg:p-8"
-          key={loc.pathname}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          <Outlet />
-        </motion.div>
+        <ContextBanner area="dashboard" />
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
+          <AnimatedOutlet />
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,14 @@
 import { nanoid } from "nanoid";
 import { Booking } from "../models/Booking.js";
+import { User } from "../models/User.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { AppError } from "../utils/AppError.js";
 import { recordGuestDebit, recordHostCredit } from "../services/transactionService.js";
 import { createNotification } from "../services/notificationService.js";
 
 /**
- * Free demo checkout — no real card, no payment processor keys required.
- * Simulates Payfast-style "paid" for coursework / portfolio use.
+ * One-tap pay from **wallet balance** only (no card simulation here).
+ * Prefer the multi-step `/api/payments/simulate/*` flow in the UI.
  */
 export const demoPay = catchAsync(async (req, res) => {
   const { bookingId } = req.body;
@@ -27,14 +28,26 @@ export const demoPay = catchAsync(async (req, res) => {
   if (booking.paymentStatus === "mock_paid" || booking.paymentStatus === "refunded") {
     return res.json({ success: true, booking, message: "Payment already recorded" });
   }
+  const amount = booking.totalPrice;
+  const userAfter = await User.findOneAndUpdate(
+    { _id: req.user._id, walletBalance: { $gte: amount } },
+    { $inc: { walletBalance: -amount } },
+    { new: true }
+  );
+  if (!userAfter) {
+    throw new AppError(
+      `Not enough wallet balance. Add at least $${amount} in Dashboard → Wallet, or use the full checkout flow.`,
+      400
+    );
+  }
   booking.paymentStatus = "mock_paid";
-  booking.mockPayReference = `DEMO-PAY-${nanoid(10)}`;
+  booking.mockPayReference = `WALLET-QUICK-${nanoid(8)}`;
   await booking.save();
 
   await recordGuestDebit({
     userId: booking.guest,
     amount: booking.totalPrice,
-    label: `Payment — booking #${String(booking._id).slice(-6)}`,
+    label: `Payment (wallet quick) #${String(booking._id).slice(-6)}`,
     bookingId: booking._id,
   });
   await recordHostCredit({
@@ -46,8 +59,13 @@ export const demoPay = catchAsync(async (req, res) => {
   await createNotification({
     userId: booking.host,
     type: "payment",
-    message: "Demo payment received for a new booking. You can confirm the reservation.",
+    message: "Wallet payment received for a new booking. You can confirm the reservation.",
     link: "/dashboard/bookings",
   });
-  res.json({ success: true, booking, message: "Demo payment successful (no real money was charged)" });
+  res.json({
+    success: true,
+    booking,
+    walletBalance: userAfter.walletBalance,
+    message: "Paid from your StayVerse wallet (simulated).",
+  });
 });

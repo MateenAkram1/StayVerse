@@ -7,14 +7,31 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-ink min-h-screen font-sans;
+    @apply min-h-screen font-sans antialiased;
     color: #e8e6df;
-    background-color: #0b0f16;
-    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
-    background-size: 24px 24px;
+    background-color: #06090d;
+    background-image:
+      radial-gradient(ellipse 100% 80% at 50% -30%, rgba(47, 77, 70, 0.22), transparent 55%),
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+    background-size: 100% 100%, 24px 24px;
   }
   ::selection {
     @apply bg-ember/30 text-paper;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-night/50;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ink-800;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-pine-600/60;
   }
   input,
   textarea,
@@ -34,23 +51,49 @@
     border-color: rgba(184, 74, 46, 0.65);
     box-shadow: 0 0 0 3px rgba(184, 74, 46, 0.14);
   }
+  .input-ctrl {
+    @apply mt-1 w-full rounded-xl border border-white/10 bg-ink-900/70 px-3 py-2.5 transition-shadow duration-200;
+  }
+  .input-ctrl:focus {
+    @apply border-ember/50 shadow-[0_0_0_3px_rgba(184,74,46,0.12)];
+  }
 }
 
 @layer components {
   .container-page {
-    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+    @apply relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md bg-ember px-4 py-2.5 text-sm font-medium text-paper shadow-lift transition hover:brightness-110 active:scale-[0.99] disabled:opacity-50;
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-md bg-ember px-4 py-2.5 text-sm font-medium text-paper shadow-lift;
+    @apply transition-[transform,box-shadow,filter] duration-200 ease-out;
+    @apply hover:brightness-110 hover:shadow-glow active:scale-[0.99] disabled:opacity-50;
+  }
+  .btn-primary::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.18) 50%, transparent 100%);
+    transform: translateX(-60%);
+  }
+  .btn-primary:hover::after {
+    @apply opacity-100;
+    animation: btn-shine 0.9s ease-out forwards;
+  }
+  @keyframes btn-shine {
+    to {
+      transform: translateX(60%);
+    }
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-md border border-ink-200/20 bg-ink-800/50 px-4 py-2.5 text-sm text-ink-100 transition hover:border-ink-200/40;
+    @apply inline-flex items-center justify-center rounded-md border border-ink-200/20 bg-ink-800/50 px-4 py-2.5 text-sm text-ink-100;
+    @apply backdrop-blur-sm transition duration-200;
+    @apply hover:border-ember/35 hover:bg-ink-800/80 hover:shadow-glow-pine;
   }
   .panel {
-    @apply rounded-xl border border-white/10 bg-ink-800/60 shadow-card backdrop-blur-sm;
+    @apply rounded-xl border border-white/10 bg-ink-800/55 shadow-card backdrop-blur-md;
+    @apply transition-shadow duration-300 hover:border-white/[0.12] hover:shadow-lift;
   }
   .glass {
-    @apply rounded-2xl border border-white/15 bg-ink-800/55 backdrop-blur-md;
+    @apply rounded-2xl border border-white/15 bg-ink-800/50 backdrop-blur-xl;
   }
   .ring-gradient {
     position: relative;
@@ -62,7 +105,31 @@
     inset: -1px;
     z-index: -1;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(184, 74, 46, 0.5), rgba(47, 77, 70, 0.42), rgba(29, 53, 87, 0.38));
+    background: linear-gradient(125deg, rgba(184, 74, 46, 0.55), rgba(47, 77, 70, 0.5), rgba(50, 70, 120, 0.42));
+    animation: border-glow 6s ease-in-out infinite;
+  }
+  @keyframes border-glow {
+    0%,
+    100% {
+      opacity: 0.75;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer-sweep {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  .nav-pill {
+    @apply relative overflow-hidden transition-colors duration-200;
+  }
+  .nav-pill[data-active="true"] {
+    @apply bg-white/[0.12] text-paper shadow-sm;
   }
   .line-clamp-3 {
     display: -webkit-box;

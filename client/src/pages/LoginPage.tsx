@@ -6,6 +6,7 @@ import { setCredentials, setHydrated } from "@/features/auth/authSlice";
 import type { User } from "@/types";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ToastHost";
+import { AuthShell } from "@/components/layout/AuthShell";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
@@ -32,19 +33,22 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <AuthShell
+      title="Sign in"
+      subtitle="Welcome back — pick up where you left off."
+      image="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80"
+    >
       <motion.form
         onSubmit={onSubmit}
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm rounded-2xl border border-white/10 bg-ink-800/70 p-8 shadow-lift"
+        transition={{ delay: 0.1, duration: 0.35 }}
+        className="ring-gradient glass mt-8 p-8 shadow-lift"
       >
-        <h1 className="font-display text-2xl text-paper">Sign in</h1>
-        <p className="mt-1 text-sm text-ink-200">Welcome back to StayVerse.</p>
-        <label className="mt-6 block text-xs uppercase tracking-wider text-ink-200/80">
+        <label className="block text-xs font-medium uppercase tracking-wider text-ink-200/85">
           Email
           <input
-            className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2.5"
+            className="input-ctrl"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -52,10 +56,10 @@ export function LoginPage() {
             autoComplete="email"
           />
         </label>
-        <label className="mt-4 block text-xs uppercase tracking-wider text-ink-200/80">
+        <label className="mt-4 block text-xs font-medium uppercase tracking-wider text-ink-200/85">
           Password
           <input
-            className="mt-1 w-full rounded-md border border-white/10 bg-ink-900/60 px-3 py-2.5"
+            className="input-ctrl"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -67,17 +71,17 @@ export function LoginPage() {
           {busy ? "Signing in…" : "Sign in"}
         </button>
         <p className="mt-4 text-center text-sm text-ink-200">
-          <Link to="/forgot" className="text-ember hover:underline">
+          <Link to="/forgot" className="text-ember transition hover:text-paper">
             Forgot password
           </Link>
         </p>
         <p className="mt-2 text-center text-sm text-ink-200">
           New here?{" "}
-          <Link to="/register" className="text-ember hover:underline">
+          <Link to="/register" className="text-ember transition hover:text-paper">
             Create an account
           </Link>
         </p>
       </motion.form>
-    </div>
+    </AuthShell>
   );
 }

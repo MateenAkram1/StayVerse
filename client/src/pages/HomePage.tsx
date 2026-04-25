@@ -6,11 +6,12 @@ import { PropertyCard } from "@/components/PropertyCard";
 import type { Property } from "@/types";
 import { useAppSelector } from "@/app/hooks";
 import { POPULAR_CITIES } from "@/constants/travel";
+import { TextShimmer } from "@/components/ui/LoadPulse";
 
 export function HomePage() {
-  const [ids, setIds] = useState<string[] | null>(null);
   const [props, setProps] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recSource, setRecSource] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [guests, setGuests] = useState("2");
   const nav = useNavigate();
@@ -20,8 +21,8 @@ export function HomePage() {
     const run = async () => {
       setLoading(true);
       try {
-        const rec = await api.get<{ propertyIds: string[] }>("/recommendations");
-        setIds(rec.data.propertyIds);
+        const rec = await api.get<{ propertyIds: string[]; source?: string; about?: string }>("/recommendations");
+        setRecSource(rec.data.source || null);
         const list = rec.data.propertyIds.length
           ? await Promise.all(rec.data.propertyIds.slice(0, 6).map((id) => api.get(`/properties/${id}`)))
           : [];
@@ -29,7 +30,7 @@ export function HomePage() {
       } catch {
         const fallback = await api.get("/properties?limit=6");
         setProps(fallback.data.properties);
-        setIds(null);
+        setRecSource(null);
       } finally {
         setLoading(false);
       }
@@ -120,14 +121,35 @@ export function HomePage() {
         </div>
       </section>
 
+      <section className="container-page py-8">
+        <div className="panel grid gap-4 p-5 md:grid-cols-2">
+          <div>
+            <h2 className="font-display text-lg text-paper">AI recommendations</h2>
+            <p className="mt-1 text-sm text-ink-200/95">
+              The home page calls <code className="text-ink-100/90">GET /api/recommendations</code>. With{" "}
+              <code className="text-ink-100/90">GEMINI_API_KEY</code> and <code className="text-ink-100/90">GEMINI_MODEL</code> set on the server, listings
+              are ranked; otherwise a fallback order is used. Source: <span className="text-ember/90">{recSource || "—"}</span>
+            </p>
+          </div>
+          <div>
+            <h2 className="font-display text-lg text-paper">AI chat (Gemini)</h2>
+            <p className="mt-1 text-sm text-ink-200/95">
+              When signed in, use the <strong className="text-ink-100">AI</strong> button (bottom-right). It calls{" "}
+              <code className="text-ink-100/90">POST /api/ai/chat</code>. Set <code className="text-ink-100/90">GEMINI_CHAT_MODEL</code> to your preferred
+              Flash model (e.g. a 2.5 Flash id from Google AI Studio if available in your project).
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="container-page border-t border-white/5 py-12">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div className="space-y-1">
             <h2 className="font-display text-2xl text-paper">Picked for you</h2>
             <p className="text-sm text-ink-200">
-              {ids?.length
-                ? "Ranked with Gemini when configured; otherwise a balanced fallback set."
-                : "Popular listings in the catalog this week."}
+              {recSource === "gemini" || recSource === "fallback"
+                ? `Ranking source: ${recSource}. Set GEMINI_API_KEY for smart ordering.`
+                : "Listings for discovery on the home page."}
             </p>
           </div>
           <Link to="/explore" className="text-sm text-ember hover:underline">
@@ -135,7 +157,17 @@ export function HomePage() {
           </Link>
         </div>
         {loading ? (
-          <p className="text-ink-200">Loading spaces…</p>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="overflow-hidden rounded-2xl border border-white/10 bg-ink-800/40">
+                <TextShimmer className="aspect-[5/3] w-full" />
+                <div className="space-y-2 p-4">
+                  <TextShimmer className="h-4 w-[75%]" />
+                  <TextShimmer className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {props.map((p, i) => (
