@@ -19,7 +19,6 @@ StayVerse/
   client/        # React app (Vite + TS)
   server/        # Express API + MongoDB models
   .envexample
-  API_KEYS.md
   package.json   # root scripts
 ```
 
