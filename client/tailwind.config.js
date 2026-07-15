@@ -4,12 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: "#0c1118", 50: "#f5f4f0", 100: "#e8e6df", 200: "#d4d0c5", 800: "#1a1f2a", 900: "#090c12" },
-        pine: { DEFAULT: "#2f4d46", 400: "#3d5f57", 600: "#1f3a35" },
-        ember: "#b84a2e",
-        paper: "#f0ebe3",
-        night: "#06090d",
-        accent: { DEFAULT: "#c45c3c", glow: "rgba(196, 92, 60, 0.35)" },
+        ink: { DEFAULT: "#020617", 50: "#f8fafc", 100: "#f1f5f9", 200: "#e2e8f0", 800: "#1e293b", 900: "#0f172a" },
+        pine: { DEFAULT: "#0f172a", 400: "#1e293b", 600: "#0f172a" },
+        ember: "#06b6d4",
+        paper: "#0f172a",
+        night: "#020617",
+        accent: { 
+          DEFAULT: "#22d3ee", 
+          glow: "rgba(34, 211, 238, 0.35)",
+          purple: "#8b5cf6",
+          indigo: "#6366f1",
+          cyan: "#06b6d4"
+        },
       },
       backgroundImage: {
         "grid-faint":
@@ -25,10 +31,10 @@ export default {
         sans: ['"Inter"', "system-ui", "sans-serif"],
       },
       boxShadow: {
-        lift: "0 18px 50px -18px rgba(0,0,0,0.45)",
-        card: "0 0 0 1px rgba(255,255,255,0.06), 0 12px 32px -12px rgba(0,0,0,0.55)",
-        glow: "0 0 40px -8px var(--glow, rgba(184, 74, 46, 0.35))",
-        "glow-pine": "0 0 48px -10px rgba(61, 95, 87, 0.45)",
+        lift: "0 18px 50px -18px rgba(0,0,0,0.7)",
+        card: "0 0 0 1px rgba(34, 211, 238, 0.1), 0 12px 32px -12px rgba(0,0,0,0.7)",
+        glow: "0 0 40px -8px var(--glow, rgba(34, 211, 238, 0.35))",
+        "glow-pine": "0 0 48px -10px rgba(34, 211, 238, 0.25)",
       },
       keyframes: {
         drift: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-4px)" } },
